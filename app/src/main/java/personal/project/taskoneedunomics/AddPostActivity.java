@@ -53,7 +53,7 @@ public class AddPostActivity extends AppCompatActivity {
     String cTitile, cDescr, cImage;
 
     //Creating URI
-    Uri mFilePathUri;
+    Uri mFilePathUri = null;
 
     StorageReference mStorageReference;
     DatabaseReference mdatabaseReference;
@@ -61,7 +61,7 @@ public class AddPostActivity extends AppCompatActivity {
     ProgressDialog mprogressDialog;
 
     //Image request code for choosing image
-    int IMAGE_REQUEST_CODE = 5;
+    int PICK_IMAGE_REQUEST = 71;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +80,7 @@ public class AddPostActivity extends AppCompatActivity {
 
             mTitleEt.setText(cTitile);
             Picasso.get().load(cImage).into(mPostTv);
+            mDescEt.setText(cDescr);
             mUploadBtn.setText("Update");
         }
 
@@ -91,7 +92,8 @@ public class AddPostActivity extends AppCompatActivity {
                 Intent intent = new Intent();
                 intent.setType("image/*");
                 intent.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(Intent.createChooser(intent, "Select image"), IMAGE_REQUEST_CODE);
+                startActivityForResult(Intent.createChooser(intent, "Select image"), PICK_IMAGE_REQUEST);
+                //uploadDataToFirebase();
 
             }
         });
@@ -243,7 +245,7 @@ public class AddPostActivity extends AppCompatActivity {
                     .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                            mprogressDialog.setTitle("Image is Uploading");
+                            mprogressDialog.setMessage("Image is Uploading");
                         }
                     });
 
@@ -255,8 +257,8 @@ public class AddPostActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == IMAGE_REQUEST_CODE
-                && requestCode == RESULT_OK
+        if (requestCode == PICK_IMAGE_REQUEST
+                && resultCode == RESULT_OK
                 && data != null
                 && data.getData() != null){
 
