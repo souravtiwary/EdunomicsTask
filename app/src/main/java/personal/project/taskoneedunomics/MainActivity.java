@@ -3,54 +3,59 @@ package personal.project.taskoneedunomics;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.SearchView;
-import android.widget.TextView;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.MenuItemCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
-import com.firebase.client.Firebase;
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
-import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    RecyclerView mRecyclerView ;
-    FirebaseDatabase mFirebaseDatabase;
-    DatabaseReference mRef;
-    FirebaseRecyclerAdapter<Model, ViewHolder> firebaseRecyclerAdapter;
-    FirebaseRecyclerOptions<Model> options;
+    public static final String ARTIST_NAME = "net.simplifiedcoding.firebasedatabaseexample.artistname";
+    public static final String ARTIST_ID = "net.simplifiedcoding.firebasedatabaseexample.artistid";
+
+    //view objects
+    EditText editTextName;
+    Spinner spinnerGenre;
+    Button buttonAddArtist;
+    ListView listViewArtists;
+
+    //a list to store all the artist from firebase database
+    List<Artist> artists;
+
+    //our database reference object
+    DatabaseReference databaseArtists;
+//    RecyclerView mRecyclerView ;
+//    FirebaseDatabase mFirebaseDatabase;
+//    DatabaseReference mRef;
+//    FirebaseRecyclerAdapter<Model, ViewHolder> firebaseRecyclerAdapter;
+//    FirebaseRecyclerOptions<Model> options;
     LinearLayoutManager mlayoutManager; // for sorting
-    SharedPreferences mSharedPref ; // for saving setting
+      SharedPreferences mSharedPref ; // for saving setting
+
 
 
     @Override
@@ -58,14 +63,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle("Post List");
+        //getting the reference of artists node
+        databaseArtists = FirebaseDatabase.getInstance().getReference("artists");
 
-        mRecyclerView = findViewById(R.id.recyclerview);
-        mRecyclerView.setHasFixedSize(true);
+        //getting views
+        editTextName = (EditText) findViewById(R.id.editTextName);
+        spinnerGenre = (Spinner) findViewById(R.id.spinnerGenres);
+        listViewArtists = (ListView) findViewById(R.id.listViewArtists);
+
+        buttonAddArtist = (Button) findViewById(R.id.buttonAddArtist);
+
 
         mSharedPref = getSharedPreferences("SortSetting", MODE_PRIVATE);
         String mSorting = mSharedPref.getString("Sort", "newest");  // if no setting is secleted the newest is default
+
 
         if(mSorting.equals("newest")){
             mlayoutManager = new LinearLayoutManager(this);
@@ -77,229 +88,205 @@ public class MainActivity extends AppCompatActivity {
             mlayoutManager.setReverseLayout(false);
             mlayoutManager.setStackFromEnd(false);
         }
+        
+        //list to store artists
+        artists = new ArrayList<>();
 
-
-
-        mFirebaseDatabase = FirebaseDatabase.getInstance();
-        mRef = mFirebaseDatabase.getReference("Data");
-
-        showData();
-    }
-
-
-
-
-
-
-    private void showDeleteDialog(final String currentTitle, final String currentImage) {
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setTitle("Delete");
-        builder.setMessage("Are you sure want to delete");
-
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+        //attaching listener to listview
+        listViewArtists.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Query mQuery = mRef.orderByChild("title").equalTo(currentTitle);
-                mQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        for (DataSnapshot ds: snapshot.getChildren()){
-                            ds.getRef().removeValue();
-                        }
-                        Toast.makeText(MainActivity.this, "Deleted", Toast.LENGTH_SHORT).show();
-                    }
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                //getting the selected artist
+                Artist artist = artists.get(i);
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(MainActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                //creating an intent
+                Intent intent = new Intent(getApplicationContext(), ArtistActivity.class);
 
-                    }
-                });
+                //putting artist name and id to intent
+                intent.putExtra(ARTIST_ID, artist.getArtistId());
+                intent.putExtra(ARTIST_NAME, artist.getArtistName());
 
-                StorageReference mPictureRefe = FirebaseStorage.getInstance().getReferenceFromUrl(currentImage);
-                mPictureRefe.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Toast.makeText(MainActivity.this, "Image deleted", Toast.LENGTH_SHORT).show();
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(MainActivity.this, "Image cannot be deleted", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        });
-        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-
-                dialog.dismiss();
+                //starting the activity with intent
+                startActivity(intent);
             }
         });
 
-        builder.show();
-    }
-
-    private void showData(){
-
-        options = new FirebaseRecyclerOptions.Builder<Model>().setQuery(mRef, Model.class).build();
-
-        firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<Model, ViewHolder>(options) {
+        listViewArtists.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            protected void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull Model model) {
-                holder.setDetails(getApplicationContext(), model.getTitle(), model.getDescription(), model.getImage());
-
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Artist artist = artists.get(i);
+                showUpdateDeleteDialog(artist.getArtistId(), artist.getArtistName());
+                return true;
             }
+        });
 
-            @NonNull
+
+        //adding an onclicklistener to button
+        buttonAddArtist.setOnClickListener(new View.OnClickListener() {
             @Override
-            public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-                View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.row, parent,false);
-                ViewHolder viewHolder = new ViewHolder(itemView);
-
-                viewHolder.setOnClickListener(new ViewHolder.ClickListener() {
-                    @Override
-                    public void onItemClicked(View view, int position) {
-                        TextView mTitleTv = view.findViewById(R.id.rTitleTv);
-                        TextView mDescTv = view.findViewById(R.id.rDescriptionTv);
-                        ImageView mImageview = view.findViewById(R.id.rImageView);
-                        String mTitle = mTitleTv.getText().toString();
-                        String mDesc = mDescTv.getText().toString();
-                        Drawable mDrawable = mImageview.getDrawable();
-                        Bitmap mBitmap = ((BitmapDrawable)mDrawable).getBitmap();
-
-                        //pass it to PastDetailActivity
-
-                        Intent intent = new Intent(view.getContext(), PostDetailActivity.class);
-                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                        mBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                        byte[] bytes = stream.toByteArray();
-                        intent.putExtra("image", bytes); //put bitmap image as array of bytems
-                        intent.putExtra("title", mTitle);
-                        intent.putExtra("desc", mDesc);
-                        startActivity(intent);
-
-                    }
-
-                    @Override
-                    public void onItemLongClick(View view, int position) {
-
-                        //delete
-                        final String cTitile = getItem(position).getTitle();
-                        final String cImage = getItem(position).getImage();
-                        final String cDescr = getItem(position).getDescription();
-
-
-                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                        String [] options = {"Update", "Delete"};
-                        builder.setItems(options, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                if(which == 0){
-                                    Intent intent = new Intent(MainActivity.this, AddPostActivity.class);
-                                    intent.putExtra("cTitle", cTitile);
-                                    intent.putExtra("cDescr", cDescr);
-                                    intent.putExtra("cImage", cImage);
-                                    startActivity(intent);
-
-                                }
-                                else if (which == 1){
-                                    showDeleteDialog(cTitile, cImage);
-                                }
-                            }
-                        });
-                        builder.create().show();
-
-                    }
-                });
-                return viewHolder;
+            public void onClick(View view) {
+                //calling the method addArtist()
+                //the method is defined below
+                //this method is actually performing the write operation
+                addArtist();
             }
-        };
+        });
 
-        mRecyclerView.setLayoutManager(mlayoutManager);
-        firebaseRecyclerAdapter.startListening();
-        mRecyclerView.setAdapter(firebaseRecyclerAdapter);
 
     }
 
-    //search data
-    private void firebaseSearch(String searchText){
-
-        String query = searchText.toLowerCase();
-
-        Query firebaseSearchQuery = mRef.orderByChild("search").startAt(query).endAt(query+"\uf8ff");
 
 
-        options = new FirebaseRecyclerOptions.Builder<Model>().setQuery(firebaseSearchQuery, Model.class).build();
+    public void findItems(View view) {
 
-        firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<Model, ViewHolder>(options) {
-            @Override
-            protected void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull Model model) {
-                holder.setDetails(getApplicationContext(), model.getTitle(), model.getDescription(), model.getImage());
+    }
 
-            }
+    /*
+     * This method is saving a new artist to the
+     * Firebase Realtime Database
+     * */
+    private void addArtist() {
+        //getting the values to save
+        String name = editTextName.getText().toString().trim();
+        String genre = spinnerGenre.getSelectedItem().toString();
 
-            @NonNull
-            @Override
-            public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-                View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.row, parent,false);
-                ViewHolder viewHolder = new ViewHolder(itemView);
+        //checking if the value is provided
+        if (!TextUtils.isEmpty(name)) {
 
-                viewHolder.setOnClickListener(new ViewHolder.ClickListener() {
-                    @Override
-                    public void onItemClicked(View view, int position) {
-                        TextView mTitleTv = view.findViewById(R.id.rTitleTv);
-                        TextView mDescTv = view.findViewById(R.id.rDescriptionTv);
-                        ImageView mImageview = view.findViewById(R.id.rImageView);
-                        String mTitle = mTitleTv.getText().toString();
-                        String mDesc = mDescTv.getText().toString();
-                        Drawable mDrawable = mImageview.getDrawable();
-                        Bitmap mBitmap = ((BitmapDrawable)mDrawable).getBitmap();
+            //getting a unique id using push().getKey() method
+            //it will create a unique id and we will use it as the Primary Key for our Artist
+            String id = databaseArtists.push().getKey();
 
-                        //pass it to PastDetailActivity
+            //creating an Artist Object
+            Artist artist = new Artist(id, name, genre);
 
-                        Intent intent = new Intent(view.getContext(), PostDetailActivity.class);
-                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                        mBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                        byte[] bytes = stream.toByteArray();
-                        intent.putExtra("image", bytes); //put bitmap image as array of bytems
-                        intent.putExtra("title", mTitle);
-                        intent.putExtra("desc", mDesc);
-                        startActivity(intent);
+            //Saving the Artist
+            databaseArtists.child(id).setValue(artist);
 
-                    }
+            //setting edittext to blank again
+            editTextName.setText("");
 
-                    @Override
-                    public void onItemLongClick(View view, int position) {
-
-                        String currentTitle = getItem(position).getTitle();
-                        String currentImage = getItem(position).getImage();
-                        showDeleteDialog(currentTitle, currentImage);
-
-                    }
-                });
-                return viewHolder;
-            }
-        };
-
-        mRecyclerView.setLayoutManager(mlayoutManager);
-        firebaseRecyclerAdapter.startListening();
-        mRecyclerView.setAdapter(firebaseRecyclerAdapter);
+            //displaying a success toast
+            Toast.makeText(this, "Artist added", Toast.LENGTH_LONG).show();
+        } else {
+            //if the value is not given displaying a toast
+            Toast.makeText(this, "Please enter a name", Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
     protected void onStart() {
+
+
         super.onStart();
+        //attaching value event listener
+        databaseArtists.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
 
-        if(firebaseRecyclerAdapter != null){
-            firebaseRecyclerAdapter.startListening();
-        }
+                //clearing the previous artist list
+                artists.clear();
 
+                //iterating through all the nodes
+                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    //getting artist
+                    Artist artist = postSnapshot.getValue(Artist.class);
+                    //adding artist to the list
+                    artists.add(artist);
+                }
+
+                //creating adapter
+                ArtistList artistAdapter = new ArtistList(MainActivity.this, artists);
+                //attaching adapter to the listview
+                listViewArtists.setAdapter(artistAdapter);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
-    @Override
+    private boolean updateArtist(String id, String name, String genre) {
+        //getting the specified artist reference
+        DatabaseReference dR = FirebaseDatabase.getInstance().getReference("artists").child(id);
+
+        //updating artist
+        Artist artist = new Artist(id, name, genre);
+        dR.setValue(artist);
+        Toast.makeText(getApplicationContext(), "Artist Updated", Toast.LENGTH_LONG).show();
+        return true;
+    }
+
+    private void showUpdateDeleteDialog(final String artistId, String artistName) {
+
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        final View dialogView = inflater.inflate(R.layout.update_dialog, null);
+        dialogBuilder.setView(dialogView);
+
+        final EditText editTextName = (EditText) dialogView.findViewById(R.id.editTextName);
+        final Spinner spinnerGenre = (Spinner) dialogView.findViewById(R.id.spinnerGenres);
+        final Button buttonUpdate = (Button) dialogView.findViewById(R.id.buttonUpdateArtist);
+        final Button buttonDelete = (Button) dialogView.findViewById(R.id.buttonDeleteArtist);
+
+        dialogBuilder.setTitle(artistName);
+        final AlertDialog b = dialogBuilder.create();
+        b.show();
+
+
+        buttonUpdate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String name = editTextName.getText().toString().trim();
+                String genre = spinnerGenre.getSelectedItem().toString();
+                if (!TextUtils.isEmpty(name)) {
+                    updateArtist(artistId, name, genre);
+                    b.dismiss();
+                }
+            }
+        });
+
+
+        buttonDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                buttonDelete.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                        deleteArtist(artistId);
+                        b.dismiss();
+                    }
+                });
+
+            }
+        });
+    }
+
+
+
+
+    private boolean deleteArtist(String id) {
+        //getting the specified artist reference
+        DatabaseReference dR = FirebaseDatabase.getInstance().getReference("artists").child(id);
+
+        //removing artist
+        dR.removeValue();
+
+        //getting the tracks reference for the specified artist
+        DatabaseReference drTracks = FirebaseDatabase.getInstance().getReference("tracks").child(id);
+
+        //removing all tracks
+        drTracks.removeValue();
+        Toast.makeText(getApplicationContext(), "Artist Deleted", Toast.LENGTH_LONG).show();
+
+        return true;
+    }
+
+        @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
         MenuItem item = menu.findItem(R.id.action_search);
@@ -307,13 +294,13 @@ public class MainActivity extends AppCompatActivity {
         searchView.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                firebaseSearch(query);
+                //firebaseSearch(query);
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                firebaseSearch(newText);
+                //firebaseSearch(newText);
                 return false;
             }
         });
@@ -329,14 +316,9 @@ public class MainActivity extends AppCompatActivity {
             showSortDailog();
             return true;
         }
-
-        if (id == R.id.action_add){
-            startActivity(new Intent(MainActivity.this, AddPostActivity.class));
-            return true;
-        }
-
         return super.onOptionsItemSelected(item);
     }
+
 
     private void showSortDailog() {
         String[] sortOptions = {"Newest", "Oldest"};
@@ -362,5 +344,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         builder.show();
+
     }
+
 }
