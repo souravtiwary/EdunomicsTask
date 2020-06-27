@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".AddPostActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter Title"
+            android:id="@+id/pTitleEt"
+            android:layout_marginTop="25dp"
+            android:padding="10dp"
+            android:singleLine="true"/>
+
+        <ImageView
+            android:id="@+id/pImageTv"
+            android:layout_width="221dp"
+            android:layout_height="200dp"
+            android:layout_gravity="center"
+            android:background="@drawable/ic_action_add"
+            android:backgroundTint="@color/colorPrimary" />
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:id="@+id/pDescEt"
+            android:hint="Enter the description of Image...."
+            android:minHeight="100dp"
+            android:gravity="top"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Upload"
+            android:id="@+id/pUploadBtn"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            android:layout_gravity="end"/>
+
+
+    </LinearLayout>
+
+
+</ScrollView>

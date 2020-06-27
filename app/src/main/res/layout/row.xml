@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardBackgroundColor="#fff"
+    app:cardCornerRadius="4dp"
+    app:cardElevation="4dp"
+    app:contentPadding="5dp"
+    app:cardUseCompatPadding="true">
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        
+        <TextView
+            android:id="@+id/rTitleTv"
+            android:text="Title"
+            android:textColor="#000"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <ImageView
+            android:background="@drawable/loading"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:id="@+id/rImageView"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true"/>
+        <TextView
+            android:id="@+id/rDescriptionTv"
+            android:textSize="20sp"
+            android:textStyle="italic"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:text="This will contain the description of the post"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+    
+    
+
+</androidx.cardview.widget.CardView>

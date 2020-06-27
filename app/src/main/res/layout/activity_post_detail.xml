@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:cardBackgroundColor="#fff"
+    app:cardCornerRadius="4dp"
+    app:cardElevation="4dp"
+    app:contentPadding="5dp"
+    app:cardUseCompatPadding="true"
+    tools:context=".PostDetailActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/titleTv"
+            android:text="Title"
+            android:textColor="#000"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <ImageView
+            android:background="@drawable/loading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageView"
+            android:scaleType="fitXY"
+            android:adjustViewBounds="true"/>
+        <TextView
+            android:id="@+id/descriptionTv"
+            android:textSize="20sp"
+            android:textStyle="italic"
+            android:text="This will contain the description of the post"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/saveBtn"
+                android:text="Save"
+                android:textColor="#000"
+                android:drawableLeft="@drawable/ic_action_save"
+                android:layout_weight="1"
+                style="@style/TextAppearance.AppCompat.Widget.Button.Colored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <Button
+                android:id="@+id/shareBtn"
+                android:text="Share"
+                android:drawableLeft="@drawable/ic_action_share"
+                android:textColor="#000"
+                android:layout_weight="1"
+                style="@style/TextAppearance.AppCompat.Widget.Button.Colored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <Button
+                android:id="@+id/wallBtn"
+                android:text="Wall"
+                android:textColor="#000"
+                android:drawableLeft="@drawable/ic_action_wall"
+                android:layout_weight="1"
+                style="@style/TextAppearance.AppCompat.Widget.Button.Colored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "611415863525",
+    "firebase_url": "https://task-one-edunomics.firebaseio.com",
+    "project_id": "task-one-edunomics",
+    "storage_bucket": "task-one-edunomics.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:611415863525:android:00b6489679c7e87e6a640c",
+        "android_client_info": {
+          "package_name": "personal.project.taskoneedunomics"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "611415863525-4rica01500ohofbesjr918bo5b9hb84k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "personal.project.taskoneedunomics",
+            "certificate_hash": "6dcb31065b987ebc832d34070c663586143d57b1"
+          }
+        },
+        {
+          "client_id": "611415863525-d1kj4tna91kv6p94c8ilr9cbf4esadmt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQVYkWSQU_zKNcEE4Z4A7S7ntigrLDBVw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "611415863525-d1kj4tna91kv6p94c8ilr9cbf4esadmt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
